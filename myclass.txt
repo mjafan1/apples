@@ -1,0 +1,111 @@
+package com.example.pc05mvma.myapplication;
+
+import android.content.ContentValues;
+import android.content.Context;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
+import android.widget.Toast;
+
+/**
+ * Created by 304-PC05MVMA on 10/26/2016.
+ */
+public class MyClass extends SQLiteOpenHelper {
+
+    private Context context;
+    private static int versionNo = 1;
+    private static String dbname = "MyDB";
+    private static String tblname = "tblusers";
+
+    private String fld_UserID = "UserID";
+    private String fld_FullName = "FullName";
+    private String fld_Age = "Age";
+
+    SQLiteDatabase database;
+    String mess = "";
+    public MyClass(Context context){
+        super(context, dbname, null, versionNo);
+        this.context = context;
+    }
+
+    public void onCreate(SQLiteDatabase db){
+        String query = "CREATE TABLE " + tblname + " ( "
+                + fld_UserID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
+                + fld_FullName + " TEXT, "
+                + fld_Age + " TEXT ) ";
+        db.execSQL(query);
+    }
+
+    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        String query = "DROP TABLE EXISTS " + tblname;
+        db.execSQL(query);
+        onCreate(db);
+    }
+
+    public void openConnection() {database = this.getWritableDatabase();}
+    public void closeConnection() {this.close();}
+
+    public long insertUser(String name, String age) {
+        openConnection();
+        ContentValues values = new ContentValues();
+        values.put(fld_FullName, name);
+        values.put(fld_Age, age);
+        long success = database.insert(tblname, null, values);
+        closeConnection();
+        return success;
+
+    }
+
+        public long updateUser(int userID, String name, String age){
+        openConnection();
+        ContentValues values = new ContentValues();
+        values.put(fld_UserID, name);
+        values.put(fld_FullName, name);
+        values.put(fld_Age, age);
+            long updateCount = database.update(tblname, values, "UserID=?", new String[]{userID + ""});
+            Toast.makeText(this.context, "Update the record",
+                    Toast.LENGTH_LONG).show();
+            closeConnection();
+            return updateCount;
+    }
+
+    public boolean deleteUser(int userID) {
+        String deleteQuery = "DELETE FROM " + tblname +
+                " WHERE " + fld_UserID + " = " + userID;
+
+        try {
+            openConnection();
+            database.execSQL(deleteQuery);
+            closeConnection();
+            return true;
+        } catch (Exception e) {
+            Toast.makeText(this.context, "There is an errr in your delete query",
+                    Toast.LENGTH_LONG).show();
+        }
+        return false;
+    }
+
+        public String getAllUsers(){
+        openConnection();
+        String mess = "";
+        Cursor c = database.query(tblname,
+                new String[] {fld_UserID, fld_FullName, fld_Age},
+                null, null, null, null, null);
+
+        if(c.moveToFirst())
+            do{
+                mess = mess+c.getString(0)+c.getString(1)+c.getString(2)+"\n";
+            }while(c.moveToNext());
+
+        return mess;
+    }
+
+    public Cursor getUser(int UserID){
+        openConnection();
+        Cursor c = database.query(true, tblname,
+                new String[]{fld_UserID, fld_FullName, fld_Age},
+                fld_UserID + "=" + UserID,
+                null, null, null, null, null);
+        return c;
+    }
+    }
