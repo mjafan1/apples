@@ -1,0 +1,117 @@
+package com.example.pc05mvma.myapplication;
+
+import android.database.Cursor;
+import android.support.v7.app.AppCompatActivity;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.Toast;
+
+public class MainActivity extends AppCompatActivity {
+EditText editid, editname, editage;
+    Button btnsearch, btnadd, btnclear, btndisplay, btnupdate, btndelete;
+    TextView txtdisplay;
+
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        editid = (EditText)findViewById(R.id.editid);
+        editname = (EditText)findViewById(R.id.editname);
+        editage = (EditText)findViewById(R.id.editage);
+        btnsearch = (Button)findViewById(R.id.btnsearch);
+        btnadd = (Button)findViewById(R.id.btnadd);
+        btnclear = (Button)findViewById(R.id.btnclear);
+        btndisplay = (Button)findViewById(R.id.btndisplay);
+        btnupdate = (Button)findViewById(R.id.btnupdate);
+        btndelete = (Button)findViewById(R.id.btndelete);
+        txtdisplay = (TextView)findViewById(R.id.txtdisplay);
+
+
+        btnclear.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                editid.setText("");
+                editname.setText("");
+                editage.setText("");
+            }
+        });
+
+        btnadd.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try{
+                    String name = editname.getText().toString();
+                    String age = editage.getText().toString();
+
+                    MyClass save = new MyClass(MainActivity.this);
+                    save.openConnection();
+                    save.insertUser(name, age);
+                    save.close();
+                }catch(Exception e){
+                    e.printStackTrace();
+                }finally {
+                    Toast.makeText(getApplicationContext(),"Successfully Added", Toast.LENGTH_LONG).show();
+                }
+            }
+            });
+
+        btndisplay.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                MyClass display = new MyClass(MainActivity.this);
+                display.openConnection();
+                txtdisplay.setText(display.getAllUsers());
+                display.close();
+            }
+        });
+
+        btnupdate.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                MyClass save = new MyClass(MainActivity.this);
+                String name = editname.getText().toString();
+                String age = editage.getText().toString();
+                save.openConnection();
+                int id = Integer.parseInt(editid.getText().toString());
+                save.updateUser(id, name, age);
+                save.closeConnection();
+            }
+        });
+
+        btndelete.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                MyClass save = new MyClass(MainActivity.this);
+                save.openConnection();
+                int id = Integer.parseInt(editid.getText().toString());
+                if(save.deleteUser(id))
+                    Toast.makeText(getApplicationContext(), "Deleted Record", Toast.LENGTH_LONG).show();
+                else
+                    Toast.makeText(getApplicationContext(), "Error Deleted Record", Toast.LENGTH_LONG).show();
+                save.closeConnection();
+            }
+        });
+
+        btnsearch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                MyClass save = new MyClass(MainActivity.this);
+                save.openConnection();
+                int id = Integer.parseInt(editid.getText().toString());
+                Cursor x = save.getUser(id);
+                if(x.moveToFirst())
+                    do {
+                        editname.setText(x.getString(1)+"");
+                        editage.setText(x.getString(2)+"");
+                    }while(x.moveToNext());
+                save.closeConnection();
+            }
+        });
+
+    }
+}
